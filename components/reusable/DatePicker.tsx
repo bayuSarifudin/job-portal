@@ -28,7 +28,7 @@ export function DatePicker({ date, onDateChange }: Props) {
             !date && "text-muted-foreground"
           )}
         >
-          {date ? formatDate(date, "PPP") : <span>Pilih tanggal</span>}
+          {date ? formatDate(date, "YYYY-MM-DD") : <span>Pilih tanggal</span>}
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
