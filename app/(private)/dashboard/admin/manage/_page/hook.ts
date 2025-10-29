@@ -3,6 +3,7 @@ import client from "@/api/client";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { CreateJobSchema } from "../../_page/validation";
+import { useSearchParams } from "next/navigation";
 
 export interface Applicant {
 	id: number | string;
@@ -28,11 +29,12 @@ export function useApplicant({ jobId }: { jobId: string }) {
 	const [loading, setLoading] = useState(false);
 	const [applicant, setApplicant] = useState<Applicant[]>([]);
 	const [job, setJob] = useState<Jobs>();
+	const searchParams = useSearchParams()?.get("jobId");
 
 	const fetchJobs = useCallback(async () => {
 		try {
 			setLoading(true);
-			const { data, error } = await client.from("jobs").select("*").eq("id", jobId).single();
+			const { data, error } = await client.from("jobs").select("*").eq("id", jobId ?? searchParams).single();
 
 			if (error) {
 				toast.error(error.message);
@@ -44,7 +46,7 @@ export function useApplicant({ jobId }: { jobId: string }) {
 		} finally {
 			setLoading(false);
 		}
-	}, [jobId]);
+	}, [jobId, searchParams]);
 
 	const fetchApplicant = useCallback(async () => {
 		try {
@@ -53,7 +55,7 @@ export function useApplicant({ jobId }: { jobId: string }) {
 				.from("job_applicants")
 				.select("*")
 				.order("created_at", { ascending: false })
-				.eq("job_id", jobId);
+				.eq("job_id", jobId ?? searchParams);
 
 			if (error) {
 				toast.error(error.message);
@@ -65,7 +67,7 @@ export function useApplicant({ jobId }: { jobId: string }) {
 		} finally {
 			setLoading(false);
 		}
-	}, [jobId]);
+	}, [jobId, searchParams]);
 
 	useEffect(() => {
 		async function init() {

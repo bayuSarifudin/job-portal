@@ -6,7 +6,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CreateJobSchema } from "../../../admin/_page/validation";
 
 interface Requirement {
@@ -18,8 +18,8 @@ interface Requirement {
 }
 
 interface Jobs extends CreateJobSchema {
-  id: number | string;
-  created_at: string;
+	id: number | string;
+	created_at: string;
 }
 
 type FieldName =
@@ -54,8 +54,7 @@ function createDynamicSchema(requirements: Requirement[]) {
 		if (reqName in zodFieldMap) {
 			const baseSchema = zodFieldMap[reqName];
 
-			shape[reqName] =
-				req.requirement_type === "mandatory" ? baseSchema : baseSchema.optional();
+			shape[reqName] = req.requirement_type === "mandatory" ? baseSchema : baseSchema.optional();
 		} else {
 			shape[reqName] =
 				req.requirement_type === "mandatory"
@@ -73,11 +72,12 @@ export function useJobs({ jobId }: { jobId: string }) {
 	const [loading, setLoading] = useState(false);
 	const [open, setOpen] = useState(false);
 	const router = useRouter();
+	const searchParams = useSearchParams()?.get("jobId");
 
 	const fetchJobs = useCallback(async () => {
 		try {
 			setLoading(true);
-			const { data, error } = await client.from("jobs").select("*").eq("id", jobId).single();
+			const { data, error } = await client.from("jobs").select("*").eq("id", jobId ?? searchParams).single();
 
 			if (error) {
 				toast.error(error.message);
@@ -89,7 +89,7 @@ export function useJobs({ jobId }: { jobId: string }) {
 		} finally {
 			setLoading(false);
 		}
-	}, [jobId]);
+	}, [jobId, searchParams]);
 
 	const fetchData = useCallback(async () => {
 		try {
@@ -97,7 +97,7 @@ export function useJobs({ jobId }: { jobId: string }) {
 			const { data, error } = await client
 				.from("job_profile_requirements")
 				.select("*")
-				.eq("job_id", jobId);
+				.eq("job_id", jobId ?? searchParams);
 
 			if (error) {
 				toast.error(error.message);
@@ -109,14 +109,14 @@ export function useJobs({ jobId }: { jobId: string }) {
 		} finally {
 			setLoading(false);
 		}
-	}, [jobId]);
+	}, [jobId, searchParams]);
 
 	useEffect(() => {
 		async function init() {
 			Promise.all([fetchData(), fetchJobs()]);
 		}
 
-    init()
+		init();
 	}, [fetchData, fetchJobs]);
 
 	const applySchema = useMemo(() => {
@@ -174,11 +174,14 @@ export function useJobs({ jobId }: { jobId: string }) {
 		}
 	};
 
-  const reqType = useMemo(() => {
-    return Object.fromEntries(
-      requirement.map((r) => [r?.field_name?.toLowerCase()?.split(' ')?.join('_'), r.requirement_type])
-    );
-  }, [requirement]);
+	const reqType = useMemo(() => {
+		return Object.fromEntries(
+			requirement.map((r) => [
+				r?.field_name?.toLowerCase()?.split(" ")?.join("_"),
+				r.requirement_type,
+			]),
+		);
+	}, [requirement]);
 
 	return {
 		loading,
@@ -188,9 +191,9 @@ export function useJobs({ jobId }: { jobId: string }) {
 		applySchema,
 		handleSubmit,
 		job,
-    form,
-    reqType,
-    open,
-    setOpen,
+		form,
+		reqType,
+		open,
+		setOpen,
 	};
 }
