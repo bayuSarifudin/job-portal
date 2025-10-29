@@ -149,6 +149,7 @@ after you clone this repository, there are several steps that you should do befo
 2. add function to automatically update new user registered and handle update_at field
 
   ```add new user
+    fuction_name: handle_new_user
     begin
       insert into public.profiles (id, full_name, role)
       values (new.id, new.raw_user_meta_data->>'full_name', 'user');
@@ -156,6 +157,7 @@ after you clone this repository, there are several steps that you should do befo
     end;
   ```
   ```update updated_at
+  function_name: update_updated_at_column
   BEGIN
     NEW.updated_at = now();
     RETURN NEW;
