@@ -148,7 +148,7 @@ export function useJobs({ jobId }: { jobId: string }) {
 				.from("job_applicants")
 				.insert([
 					{
-						job_id: jobId,
+						job_id: jobId ?? searchParams,
 						full_name: data?.full_name,
 						photo_profile: data?.photo_profile,
 						gender: data?.gender,
