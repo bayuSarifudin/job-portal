@@ -42,8 +42,13 @@ export default function HandGesture({ form, setOpen }: Props) {
 
         video.srcObject = stream;
         await video.play().catch(() => { });
-        video.addEventListener("loadedmetadata", startModel, { once: true });
-      } catch {
+        if (video.readyState >= 1) {
+          startModel();
+        } else {
+          video.addEventListener("loadedmetadata", startModel, { once: true });
+        }
+      } catch (err) {
+        console.error(err);
         setMessage("Izin kamera diblokir");
       }
     };
@@ -61,7 +66,6 @@ export default function HandGesture({ form, setOpen }: Props) {
   // ✅ Init model
   async function startModel() {
     setMessage("Memuat model...");
-
     const vision = await FilesetResolver.forVisionTasks("/mediapipe/wasm");
     const handLandmarker = await HandLandmarker.createFromOptions(vision, {
       baseOptions: {
